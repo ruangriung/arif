@@ -390,6 +390,31 @@
             margin-top: 5px;
         }
         
+        .dimension-slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .dimension-slider {
+            flex: 1;
+        }
+        
+        .dimension-value {
+            min-width: 40px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .aspect-ratio-display {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-light);
+            margin-top: 5px;
+        }
+        
         .advanced-toggle {
             display: flex;
             align-items: center;
@@ -728,23 +753,26 @@
                 <i class="fas fa-wand-magic-sparkles input-icon"></i>
                 <textarea id="prompt-textarea" placeholder="Describe your dream image in detail... (e.g. A cyberpunk cityscape at night with neon lights, 8k ultra detailed, cinematic lighting)"></textarea>
                 <div class="input-buttons">
-                    <button id="enhance-btn" title="Enhance Prompt"><i class="fas fa-wand-magic-sparkles"></i></button>
-                    <button id="generate-btn"><i class="fas fa-sparkles"></i> Generate</button>
+                    <button id="enhance-btn" title="Enhance Prompt"><i class="fas fa-brain"></i>Enhance</button>
+                    <button id="generate-btn"><i class="fas fa-magic-wand-sparkles"></i> Generate</button>
                 </div>
             </div>
             
             <div class="settings-grid">
                 <div class="setting-group">
-                    <label for="aspect-ratio"><i class="fas fa-crop-alt"></i> Aspect Ratio</label>
-                    <div class="select-container">
-                        <i class="fas fa-crop-alt"></i>
-                        <select id="aspect-ratio">
-                            <option value="square">Square (1:1)</option>
-                            <option value="portrait">Portrait (3:4)</option>
-                            <option value="landscape" selected>Landscape (16:9)</option>
-                            <option value="widescreen">Widescreen (16:10)</option>
-                            <option value="ultrawide">Ultrawide (21:9)</option>
-                        </select>
+                    <label><i class="fas fa-expand"></i> Image Dimensions</label>
+                    <div class="slider-container">
+                        <div class="dimension-slider-container">
+                            <span>Width:</span>
+                            <input type="range" class="dimension-slider" id="width-slider" min="512" max="2048" value="1024" step="64">
+                            <span class="dimension-value" id="width-value">1024</span>
+                        </div>
+                        <div class="dimension-slider-container">
+                            <span>Height:</span>
+                            <input type="range" class="dimension-slider" id="height-slider" min="512" max="2048" value="1024" step="64">
+                            <span class="dimension-value" id="height-value">1024</span>
+                        </div>
+                        <div class="aspect-ratio-display" id="aspect-ratio-display">Aspect Ratio: 1:1</div>
                     </div>
                 </div>
                 
@@ -924,9 +952,13 @@
             const creativitySlider = document.getElementById('creativity');
             const creativityValue = document.getElementById('creativity-value');
             const darkModeToggle = document.getElementById('dark-mode-toggle');
+            const widthSlider = document.getElementById('width-slider');
+            const heightSlider = document.getElementById('height-slider');
+            const widthValue = document.getElementById('width-value');
+            const heightValue = document.getElementById('height-value');
+            const aspectRatioDisplay = document.getElementById('aspect-ratio-display');
             
             // Settings elements
-            const aspectRatio = document.getElementById('aspect-ratio');
             const styleSelect = document.getElementById('style');
             const qualitySelect = document.getElementById('quality');
             const lightingSelect = document.getElementById('lighting');
@@ -951,6 +983,7 @@
             updateHistoryPanel();
             updateSavedPromptsPanel();
             updateSliderFill();
+            updateDimensionSliders();
             
             // Event listeners
             generateBtn.addEventListener('click', generateImage);
@@ -972,8 +1005,25 @@
                 updateSliderFill();
             });
             darkModeToggle.addEventListener('click', toggleDarkMode);
+            widthSlider.addEventListener('input', updateDimensionSliders);
+            heightSlider.addEventListener('input', updateDimensionSliders);
             
             // Functions
+            function updateDimensionSliders() {
+                const width = parseInt(widthSlider.value);
+                const height = parseInt(heightSlider.value);
+                
+                widthValue.textContent = width;
+                heightValue.textContent = height;
+                
+                // Calculate aspect ratio
+                const gcd = (a, b) => b ? gcd(b, a % b) : a;
+                const ratio = gcd(width, height);
+                const aspectRatio = `${width/ratio}:${height/ratio}`;
+                
+                aspectRatioDisplay.textContent = `Aspect Ratio: ${aspectRatio}`;
+            }
+            
             function generateImage() {
                 const prompt = promptTextarea.value.trim();
                 
@@ -1034,27 +1084,10 @@
                     fullPrompt += `, strict interpretation`;
                 }
                 
-                // Add aspect ratio
-                let ratioParam = '';
-                switch (aspectRatio.value) {
-                    case 'portrait':
-                        ratioParam = '?width=768&height=1024';
-                        break;
-                    case 'landscape':
-                        ratioParam = '?width=1280&height=720';
-                        break;
-                    case 'widescreen':
-                        ratioParam = '?width=1280&height=800';
-                        break;
-                    case 'ultrawide':
-                        ratioParam = '?width=1680&height=720';
-                        break;
-                    default: // square
-                        ratioParam = '?width=1024&height=1024';
-                }
-                
-                // Add nologo parameter
-                ratioParam += ratioParam ? '&nologo=true' : '?nologo=true';
+                // Get dimensions from sliders
+                const width = widthSlider.value;
+                const height = heightSlider.value;
+                const ratioParam = `?width=${width}&height=${height}&nologo=true`;
                 
                 // Add seed if provided
                 if (seedInput.value) {
