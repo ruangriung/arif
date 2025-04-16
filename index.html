@@ -575,6 +575,16 @@
             transform: translateY(-2px);
         }
         
+        .btn-danger {
+            background: var(--bg);
+            color: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background: rgba(214, 48, 49, 0.1);
+            transform: translateY(-2px);
+        }
+        
         .btn:active {
             transform: translateY(0);
             box-shadow: inset 3px 3px 5px rgba(0, 0, 0, 0.2), inset -3px -3px 5px rgba(255, 255, 255, 0.1);
@@ -594,6 +604,13 @@
         
         .history-panel {
             margin-top: 30px;
+        }
+        
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
         }
         
         .history-item {
@@ -912,7 +929,10 @@
         </div>
         
         <div class="card history-panel" id="history-panel" style="display: none;">
-            <h3><i class="fas fa-history"></i> Generation History</h3>
+            <div class="history-header">
+                <h3><i class="fas fa-history"></i> Generation History</h3>
+                <button class="btn btn-danger" id="reset-history-btn"><i class="fas fa-trash"></i> Clear History</button>
+            </div>
             <div id="history-list"></div>
         </div>
         
@@ -923,7 +943,7 @@
     </div>
     
     <footer>
-        &copy; <span id="current-year"></span> AI Image Generator. All rights reserved. Develop by ♥️ & Powered by<a href="https://pollinations.ai" target="_blank">Pollinations.ai</a>
+        &copy; <span id="current-year"></span> AI Image Generator. All rights reserved.
     </footer>
     
     <script>
@@ -944,6 +964,7 @@
             const errorMessage = document.getElementById('error-message');
             const historyPanel = document.getElementById('history-panel');
             const historyList = document.getElementById('history-list');
+            const resetHistoryBtn = document.getElementById('reset-history-btn');
             const savedPromptsPanel = document.getElementById('saved-prompts-panel');
             const savedPromptsList = document.getElementById('saved-prompts-list');
             const advancedToggle = document.getElementById('advanced-toggle');
@@ -1007,6 +1028,11 @@
             darkModeToggle.addEventListener('click', toggleDarkMode);
             widthSlider.addEventListener('input', updateDimensionSliders);
             heightSlider.addEventListener('input', updateDimensionSliders);
+            resetHistoryBtn.addEventListener('click', resetHistory);
+            
+            // Update slider fill for dimension sliders
+            widthSlider.addEventListener('input', updateSliderFill);
+            heightSlider.addEventListener('input', updateSliderFill);
             
             // Functions
             function updateDimensionSliders() {
@@ -1022,6 +1048,9 @@
                 const aspectRatio = `${width/ratio}:${height/ratio}`;
                 
                 aspectRatioDisplay.textContent = `Aspect Ratio: ${aspectRatio}`;
+                
+                // Update slider fill
+                updateSliderFill();
             }
             
             function generateImage() {
@@ -1296,6 +1325,14 @@
                 });
             }
             
+            function resetHistory() {
+                if (confirm('Are you sure you want to clear your generation history? This cannot be undone.')) {
+                    generationHistory = [];
+                    localStorage.setItem('generationHistory', JSON.stringify(generationHistory));
+                    updateHistoryPanel();
+                }
+            }
+            
             function updateSavedPromptsPanel() {
                 if (savedPrompts.length === 0) {
                     savedPromptsPanel.style.display = 'none';
@@ -1351,8 +1388,18 @@
             }
             
             function updateSliderFill() {
-                const value = creativitySlider.value;
-                creativitySlider.style.setProperty('--range-percent', `${value}%`);
+                // Update creativity slider
+                const creativityValue = creativitySlider.value;
+                creativitySlider.style.setProperty('--range-percent', `${creativityValue}%`);
+                
+                // Update dimension sliders
+                const widthValue = widthSlider.value;
+                const widthPercent = (widthValue - widthSlider.min) / (widthSlider.max - widthSlider.min) * 100;
+                widthSlider.style.setProperty('--range-percent', `${widthPercent}%`);
+                
+                const heightValue = heightSlider.value;
+                const heightPercent = (heightValue - heightSlider.min) / (heightSlider.max - heightSlider.min) * 100;
+                heightSlider.style.setProperty('--range-percent', `${heightPercent}%`);
             }
             
             function toggleDarkMode() {
