@@ -918,6 +918,7 @@
                         <select id="model">
                             <option value="pollinations">Pollinations AI (Default)</option>
                             <option value="dall-e-3">DALL-E 3 (Requires API Key)</option>
+                            <option value="stability-ai">Stability.AI (Requires API Key)</option>
                         </select>
                     </div>
                 </div>
@@ -1060,13 +1061,13 @@
     <div class="modal" id="api-key-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title"><i class="fas fa-key"></i> DALL-E 3 API Key</h3>
+                <h3 class="modal-title" id="api-key-modal-title"><i class="fas fa-key"></i> API Key Required</h3>
                 <button class="close-modal" id="close-modal">&times;</button>
             </div>
             <div class="modal-body">
-                <p>To use DALL-E 3, please enter your OpenAI API key. Your key will be stored locally in your browser and never sent to our servers.</p>
-                <input type="password" class="api-key-input" id="api-key-input" placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
-                <p class="text-muted"><small>Don't have an API key? Get one from <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI</a></small></p>
+                <p id="api-key-instructions">To use this model, please enter your API key. Your key will be stored locally in your browser and never sent to our servers.</p>
+                <input type="password" class="api-key-input" id="api-key-input" placeholder="Enter your API key">
+                <p class="text-muted" id="api-key-link"><small>Don't have an API key? Get one from <a href="#" target="_blank" id="api-key-provider-link">the provider</a></small></p>
             </div>
             <div class="modal-footer">
                 <button class="modal-btn modal-btn-secondary" id="cancel-btn">Cancel</button>
@@ -1076,7 +1077,7 @@
     </div>
     
     <footer>
-        &copy; <span id="current-year"></span> AI Image Generator. All rights reserved. powered by Pollinations.ai made with ♥️
+        &copy; <span id="current-year"></span> AI Image Generator. All rights reserved. powered by <a href="https://pollinations.ai" target="_blank">Pollinations.ai</a> Develop with ♥️ by<a href="https://ariftirtana.my.id" target="_blank">Arif Tirtana</a>
     </footer>
     
     <script>
@@ -1113,7 +1114,11 @@
             
             // Modal elements
             const apiKeyModal = document.getElementById('api-key-modal');
+            const apiKeyModalTitle = document.getElementById('api-key-modal-title');
+            const apiKeyInstructions = document.getElementById('api-key-instructions');
             const apiKeyInput = document.getElementById('api-key-input');
+            const apiKeyLink = document.getElementById('api-key-link');
+            const apiKeyProviderLink = document.getElementById('api-key-provider-link');
             const closeModalBtn = document.getElementById('close-modal');
             const cancelBtn = document.getElementById('cancel-btn');
             const saveApiKeyBtn = document.getElementById('save-api-key-btn');
@@ -1139,11 +1144,9 @@
                 darkModeToggle.innerHTML = '<i class="fas fa-sun"></i><span>Light Mode</span>';
             }
             
-            // Check for saved API key
-            const savedApiKey = localStorage.getItem('dalleApiKey');
-            if (savedApiKey) {
-                apiKeyInput.value = savedApiKey;
-            }
+            // Check for saved API keys
+            const savedDalleApiKey = localStorage.getItem('dalleApiKey');
+            const savedStabilityApiKey = localStorage.getItem('stabilityApiKey');
             
             // Initialize
             updateHistoryPanel();
@@ -1173,8 +1176,12 @@
             
             // Model select change listener
             modelSelect.addEventListener('change', function() {
-                if (this.value === 'dall-e-3' && !localStorage.getItem('dalleApiKey')) {
-                    showApiKeyModal();
+                const selectedModel = this.value;
+                
+                if (selectedModel === 'dall-e-3' && !localStorage.getItem('dalleApiKey')) {
+                    showApiKeyModal('DALL-E 3', 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'https://platform.openai.com/api-keys');
+                } else if (selectedModel === 'stability-ai' && !localStorage.getItem('stabilityApiKey')) {
+                    showApiKeyModal('Stability.AI', 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'https://platform.stability.ai/account/keys');
                 }
             });
             
@@ -1215,12 +1222,19 @@
                     return;
                 }
                 
-                // Check if DALL-E 3 is selected and API key exists
+                // Check if API key is required and exists
                 if (selectedModel === 'dall-e-3') {
                     const apiKey = localStorage.getItem('dalleApiKey');
                     if (!apiKey) {
                         showError('Please provide an API key for DALL-E 3');
-                        showApiKeyModal();
+                        showApiKeyModal('DALL-E 3', 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'https://platform.openai.com/api-keys');
+                        return;
+                    }
+                } else if (selectedModel === 'stability-ai') {
+                    const apiKey = localStorage.getItem('stabilityApiKey');
+                    if (!apiKey) {
+                        showError('Please provide an API key for Stability.AI');
+                        showApiKeyModal('Stability.AI', 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'https://platform.stability.ai/account/keys');
                         return;
                     }
                 }
@@ -1275,6 +1289,9 @@
                     if (selectedModel === 'dall-e-3') {
                         // Generate with DALL-E 3
                         imageUrl = await generateWithDalle(fullPrompt);
+                    } else if (selectedModel === 'stability-ai') {
+                        // Generate with Stability.AI
+                        imageUrl = await generateWithStability(fullPrompt);
                     } else {
                         // Generate with Pollinations AI
                         imageUrl = generateWithPollinations(fullPrompt);
@@ -1377,6 +1394,65 @@
                     }
                 } catch (error) {
                     console.error('DALL-E 3 API error:', error);
+                    throw error;
+                }
+            }
+            
+            async function generateWithStability(prompt) {
+                const apiKey = localStorage.getItem('stabilityApiKey');
+                if (!apiKey) {
+                    throw new Error('No API key provided for Stability.AI');
+                }
+                
+                // Get dimensions from sliders
+                const width = parseInt(widthSlider.value);
+                const height = parseInt(heightSlider.value);
+                
+                // Stability.AI has some size restrictions
+                let validWidth = Math.min(Math.max(width, 512), 2048);
+                let validHeight = Math.min(Math.max(height, 512), 2048);
+                
+                // Must be divisible by 64
+                validWidth = Math.floor(validWidth / 64) * 64;
+                validHeight = Math.floor(validHeight / 64) * 64;
+                
+                try {
+                    const response = await fetch('https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            text_prompts: [
+                                {
+                                    text: prompt,
+                                    weight: 1
+                                }
+                            ],
+                            cfg_scale: 7,
+                            height: validHeight,
+                            width: validWidth,
+                            steps: 30,
+                            samples: 1,
+                            seed: seedInput.value || Math.floor(Math.random() * 1000000)
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Failed to generate image with Stability.AI');
+                    }
+                    
+                    if (data.artifacts && data.artifacts[0] && data.artifacts[0].base64) {
+                        return `data:image/png;base64,${data.artifacts[0].base64}`;
+                    } else {
+                        throw new Error('No image data returned from Stability.AI');
+                    }
+                } catch (error) {
+                    console.error('Stability.AI API error:', error);
                     throw error;
                 }
             }
@@ -1656,7 +1732,16 @@
             }
             
             // Modal functions
-            function showApiKeyModal() {
+            function showApiKeyModal(modelName, placeholder, link) {
+                apiKeyModalTitle.innerHTML = `<i class="fas fa-key"></i> ${modelName} API Key`;
+                apiKeyInstructions.textContent = `To use ${modelName}, please enter your API key. Your key will be stored locally in your browser and never sent to our servers.`;
+                apiKeyInput.placeholder = placeholder;
+                apiKeyProviderLink.textContent = modelName;
+                apiKeyProviderLink.href = link;
+                
+                // Clear the input field
+                apiKeyInput.value = '';
+                
                 apiKeyModal.style.display = 'flex';
             }
             
@@ -1666,6 +1751,8 @@
             
             function saveApiKey() {
                 const apiKey = apiKeyInput.value.trim();
+                const selectedModel = modelSelect.value;
+                
                 if (!apiKey) {
                     alert('Please enter your API key');
                     return;
@@ -1673,11 +1760,17 @@
                 
                 // Simple validation for API key format
                 if (!apiKey.startsWith('sk-')) {
-                    alert('Please enter a valid OpenAI API key (should start with "sk-")');
+                    alert('Please enter a valid API key (should start with "sk-")');
                     return;
                 }
                 
-                localStorage.setItem('dalleApiKey', apiKey);
+                // Save the API key based on the selected model
+                if (selectedModel === 'dall-e-3') {
+                    localStorage.setItem('dalleApiKey', apiKey);
+                } else if (selectedModel === 'stability-ai') {
+                    localStorage.setItem('stabilityApiKey', apiKey);
+                }
+                
                 closeModal();
                 
                 // If the user was trying to generate an image, trigger it now
