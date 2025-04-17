@@ -827,7 +827,7 @@
 
       /* Footer Styles */
       footer {
-        position: relative;
+        position: fixed;
         bottom: 0;
         left: 0;
         width: 100%;
@@ -967,10 +967,18 @@
   <body>
     <div class="container">
       <h1><i class="fas fa-code"></i> RuangRiung AI Image Generator</h1>
-      <div class="dark-mode-toggle" id="darkModeToggle">
-        <i class="fas fa-moon"></i>
-        <span>Dark Mode</span>
+	  
+       <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
+        <div class="dark-mode-toggle" id="darkModeToggle">
+          <i class="fas fa-moon"></i>
+          <span>Dark Mode</span>
+        </div>
+        <div class="dark-mode-toggle" id="resetAllBtn" style="background-color: #ff4444; color: white;">
+          <i class="fas fa-trash-alt"></i>
+          <span>Reset All</span>
+        </div>
       </div>
+	  
       <div class="tab-container">
         <button class="tab-btn active" data-tab="generator">
           <i class="fas fa-magic"></i> Generator
@@ -1296,6 +1304,76 @@
         const imageContainer = document.querySelector('.image-container');
         const darkModeToggle = document.getElementById('darkModeToggle');
         const currentYearElement = document.getElementById('currentYear');
+		
+		 const resetAllBtn = document.getElementById('resetAllBtn');
+        
+        resetAllBtn.addEventListener('click', function() {
+          if (confirm('Are you sure you want to reset everything? This will delete all saved data including API keys, gallery, and history.')) {
+            // Hapus semua data dari localStorage
+            localStorage.removeItem('dalleApiKey');
+            localStorage.removeItem('stabilityApiKey');
+            localStorage.removeItem('aiImageGallery');
+            localStorage.removeItem('aiImageHistory');
+            localStorage.removeItem('darkMode');
+            
+            // Reset state aplikasi
+            currentSettings = {
+              prompt: '',
+              promptStyle: 'default',
+              safe: true,
+              nologo: true,
+              guidance: 7.5,
+              creativity: 50,
+              width: 512,
+              height: 768,
+              aspectRatio: 'portrait',
+              model: 'pollinations',
+              dalleApiKey: '',
+              stabilityApiKey: '',
+              darkMode: false,
+              seed: Math.floor(Math.random() * 1000000)
+            };
+            
+            // Reset UI
+            document.body.classList.remove('light-mode');
+            updateDarkModeToggle();
+            promptTextarea.value = '';
+            enhancedPromptContainer.style.display = 'none';
+            generatedImage.style.display = 'none';
+            downloadBtn.style.display = 'none';
+            saveToGalleryBtn.style.display = 'none';
+            generateAgainBtn.style.display = 'none';
+            
+            // Reset toggles
+            safeModeToggle.checked = true;
+            noLogoToggle.checked = true;
+            
+            // Reset sliders
+            guidanceSlider.value = 7.5;
+            creativitySlider.value = 50;
+            updateSliderValues();
+            updateSliderFill();
+            
+            // Reset model selection
+            setActiveModel('pollinations');
+            
+            // Reset aspect ratio
+            setActiveAspectRatio('portrait');
+            
+            // Reset prompt style
+            promptOptionBtns.forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.prompt-option-btn[data-style="default"]').classList.add('active');
+            currentSettings.promptStyle = 'default';
+            
+            // Kosongkan gallery dan history
+            gallery = [];
+            history = [];
+            renderGallery();
+            renderHistory();
+            
+            showToast('All data has been reset');
+          }
+        });
         
         // Modal elements
         const dalleModal = document.getElementById('dalleModal');
