@@ -405,9 +405,11 @@
         box-shadow: inset 1px 1px 3px var(--shadow-dark), inset -1px -1px 3px var(--shadow-light);
       }
 
+      /* Improved Model Selector for Mobile */
       .model-selector {
         display: flex;
-        gap: 10px;
+        flex-wrap: wrap;
+        gap: 8px;
         margin-bottom: 15px;
       }
 
@@ -423,7 +425,11 @@
         color: var(--text-color);
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 8px;
+        flex: 1;
+        min-width: 120px;
+        white-space: nowrap;
       }
 
       .model-btn.active {
@@ -821,7 +827,7 @@
 
       /* Footer Styles */
       footer {
-        position: fixed;
+        position: relative;
         bottom: 0;
         left: 0;
         width: 100%;
@@ -921,6 +927,18 @@
 
         .neumorphic-card {
           padding: 15px;
+        }
+
+        /* Improved model selector for small screens */
+        .model-selector {
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .model-btn {
+          width: 100%;
+          padding: 12px;
+          font-size: 0.85rem;
         }
 
         .gallery-grid, .history-grid {
