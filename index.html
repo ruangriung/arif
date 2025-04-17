@@ -869,6 +869,12 @@
                 width: 100%;
             }
         }
+        .note {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 5px;
+    font-style: italic;
+}
     </style>
 </head>
 <body>
@@ -908,6 +914,7 @@
                             <span class="dimension-value" id="height-value">1024</span>
                         </div>
                         <div class="aspect-ratio-display" id="aspect-ratio-display">Aspect Ratio: 1:1</div>
+
                     </div>
                 </div>
                 
@@ -921,7 +928,10 @@
                             <option value="stability-ai">Stability.AI (Requires API Key)</option>
                         </select>
                     </div>
+                    <div class="note">DALL-E 3 supports: 1024×1024, 1792×1024, or 1024×1792</div>
+                    <div class="note">Recommended sizes: 512-2048 (divisible by 64 for Stability.AI)</div>
                 </div>
+                <div class="note">Note: Stability.AI works best with dimensions divisible by 64 (e.g. 512, 576, 640, 704, 768, etc.)</div>
                 
                 <div class="setting-group">
                     <label for="style"><i class="fas fa-paint-brush"></i> Art Style</label>
@@ -1009,6 +1019,7 @@
                             <i class="fas fa-seedling"></i>
                             <input type="number" id="seed" placeholder="Leave blank for random">
                         </div>
+                        
                     </div>
                 </div>
                 
