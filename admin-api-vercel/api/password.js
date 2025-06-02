@@ -1,33 +1,37 @@
 export default async (req, res) => {
-  // Validasi CORS
+  // 1. Atur CORS
   const allowedOrigins = [
     'https://ruangriung.my.id',
-    'https://arif-rouge.vercel.app' // Tambahkan domain Vercel sendiri
+    'https://arif-rouge.vercel.app'
+    'https://arif.ruangriung.my.id'
+    'https://ruangriung.github.io/arif'
   ];
-  
   const origin = req.headers.origin;
+
   if (!allowedOrigins.includes(origin)) {
     return res.status(403).json({ 
-      error: `Origin ${origin} not allowed`,
-      allowedOrigins // Debugging
+      error: 'CORS Error', 
+      detail: `Origin ${origin} not allowed` 
     });
   }
 
-  // Validasi API Key
-  if (req.headers['x-api-key'] !== process.env.API_KEY) {
+  // 2. Validasi API Key
+  const apiKey = req.headers['x-api-key'];
+  if (apiKey !== process.env.API_KEY) {
     return res.status(401).json({ 
-      error: "Invalid API key",
-      receivedKey: req.headers['x-api-key'] // Debugging
+      error: 'Invalid API Key',
+      received: apiKey 
     });
   }
 
-  // Response
+  // 3. Response
   res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET');
-  
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'X-API-Key, Content-Type');
+
   return res.json({
     password: process.env.ADMIN_PASSWORD,
-    expiresAt: Date.now() + 3600000,
-    status: 'success'
+    status: 'success',
+    timestamp: Date.now()
   });
 };
