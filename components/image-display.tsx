@@ -11,12 +11,16 @@ interface ImageDisplayProps {
   prompt: string
   isLoading: boolean
   onRegenerate: () => void
+  size: string // Prop baru untuk menerima ukuran, cth: "1024x1792"
 }
 
-export function ImageDisplay({ imageUrl, prompt, isLoading, onRegenerate }: ImageDisplayProps) {
+export function ImageDisplay({ imageUrl, prompt, isLoading, onRegenerate, size }: ImageDisplayProps) {
   const [isImageLoaded, setIsImageLoaded] = useState(false)
+  
+  // Mem-parsing string ukuran menjadi angka
+  const [width, height] = size.split('x').map(Number)
 
-  // Reset image loaded state when URL changes
+  // Reset status 'loaded' saat URL gambar berubah
   useEffect(() => {
     setIsImageLoaded(false)
   }, [imageUrl])
@@ -50,13 +54,13 @@ export function ImageDisplay({ imageUrl, prompt, isLoading, onRegenerate }: Imag
     <Card className="overflow-hidden">
       <CardContent className="p-0 relative">
         {!imageUrl && !isLoading && (
-          <div className="aspect-square flex items-center justify-center bg-secondary/30 text-muted-foreground">
+          <div className="aspect-video flex items-center justify-center bg-secondary/30 text-muted-foreground">
             Enter a prompt and generate an image
           </div>
         )}
 
         {isLoading && (
-          <div className="aspect-square flex flex-col items-center justify-center bg-secondary/30">
+          <div className="aspect-video flex flex-col items-center justify-center bg-secondary/30">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
             <p className="text-muted-foreground">Generating your image...</p>
           </div>
@@ -68,16 +72,19 @@ export function ImageDisplay({ imageUrl, prompt, isLoading, onRegenerate }: Imag
               <Image
                 src={imageUrl || "/placeholder.svg"}
                 alt={prompt || "Generated image"}
-                width={1024}
-                height={1024}
-                className="w-full h-auto"
+                width={width || 1024}      // Menggunakan lebar dinamis
+                height={height || 1024}     // Menggunakan tinggi dinamis
+                className="w-full h-auto" // Ini membuat gambar responsif
                 onLoad={() => setIsImageLoaded(true)}
                 priority
               />
             </div>
 
             {!isImageLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center bg-secondary/30">
+              <div 
+                className="absolute inset-0 flex items-center justify-center bg-secondary/30"
+                style={{ aspectRatio: `${width || 1}/${height || 1}` }} // Placeholder dengan rasio aspek yg benar
+              >
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
               </div>
             )}
