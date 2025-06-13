@@ -20,7 +20,7 @@ export function ImageGenerator() {
     model: "flux" as ImageModel,
     nologo: true,
     enhance: true,
-    size: "1024x1024",
+    size: "1024x1792", // Ukuran default baru
     quality: "hd",
     seed: generateRandomSeed(),
   })
@@ -33,10 +33,8 @@ export function ImageGenerator() {
 
     setIsGenerating(true)
 
-    // Create a local copy of parameters to work with
     const workingParams = { ...currentParams }
 
-    // If regenerating, use a new seed but don't update state yet
     if (regenerate) {
       workingParams.seed = generateRandomSeed()
     }
@@ -54,12 +52,10 @@ export function ImageGenerator() {
 
       setCurrentImage(imageUrl)
 
-      // If we regenerated with a new seed, update the seed state now
       if (regenerate) {
         setCurrentParams(workingParams)
       }
 
-      // Add to history
       const newHistoryItem: ImageHistory = {
         id: Date.now().toString(),
         prompt,
@@ -68,11 +64,10 @@ export function ImageGenerator() {
         timestamp: new Date().toISOString(),
       }
 
-      setHistory((prev) => [newHistoryItem, ...prev].slice(0, 50)) // Keep last 50 images
+      setHistory((prev) => [newHistoryItem, ...prev].slice(0, 50))
 
-      // Save prompt if not already saved and not empty
       if (prompt && !savedPrompts.includes(prompt)) {
-        setSavedPrompts((prev) => [prompt, ...prev].slice(0, 100)) // Keep last 100 prompts
+        setSavedPrompts((prev) => [prompt, ...prev].slice(0, 100))
       }
     } catch (error) {
       console.error("Error generating image:", error)
@@ -82,7 +77,6 @@ export function ImageGenerator() {
   }
 
   const handlePromptSubmit = (inputPrompt: string) => {
-    // We don't need to call setPrompt here because it's already updated
     generateImage()
   }
 
