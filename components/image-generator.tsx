@@ -1,19 +1,23 @@
 "use client"
 
 import { useState } from "react"
-import { useLocalStorage } from "@/hooks/use-local-storage"
-import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PromptInput } from "@/components/prompt-input"
-import { ImageDisplay } from "@/components/image-display"
-import { ParameterControls } from "@/components/parameter-controls"
-import { HistoryPanel } from "@/components/history-panel"
-import { PromptSuggestions } from "@/components/prompt-suggestions"
-import type { ImageHistory, ImageParams, ImageModel } from "@/types/image-types"
-import { generateRandomSeed } from "@/lib/utils"
+import { useLocalStorage } from "@/hooks/use-local-storage" //
+import { Card, CardContent } from "@/components/ui/card" //
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs" //
+import { PromptInput } from "@/components/prompt-input" //
+import { ImageDisplay } from "@/components/image-display" //
+import { ParameterControls } from "@/components/parameter-controls" //
+import { HistoryPanel } from "@/components/history-panel" //
+import { PromptSuggestions } from "@/components/prompt-suggestions" //
+import type { ImageHistory, ImageParams, ImageModel } from "@/types/image-types" //
+import { generateRandomSeed } from "@/lib/utils" //
 
 export function ImageGenerator() {
-  const [prompt, setPrompt] = useState("")
+  // --- PERUBAHAN DI SINI ---
+  // Menggunakan useLocalStorage untuk menyimpan prompt
+  const [prompt, setPrompt] = useLocalStorage<string>("current-prompt", "")
+  // --- BATAS PERUBAHAN ---
+
   const [isGenerating, setIsGenerating] = useState(false)
   const [currentImage, setCurrentImage] = useState<string | null>(null)
   const [currentParams, setCurrentParams] = useState<ImageParams>({
@@ -39,29 +43,17 @@ export function ImageGenerator() {
     }
 
     try {
-      // --- PERBAIKAN UTAMA DIMULAI DI SINI ---
       const params = new URLSearchParams()
-      
-      // 1. Mem-parsing string 'size' menjadi width dan height
       const [width, height] = workingParams.size.split('x')
-
-      // 2. Menambahkan parameter width dan height secara terpisah ke URL
       if (width) params.append("width", width)
       if (height) params.append("height", height)
-
-      // Menambahkan parameter lainnya seperti biasa
       if (workingParams.nologo) params.append("nologo", "true")
       if (workingParams.enhance) params.append("enhance", "true")
       params.append("quality", workingParams.quality)
       params.append("seed", workingParams.seed.toString())
-      
-      // Parameter 'size' yang lama sudah tidak digunakan lagi dalam pembuatan URL
-      // --- PERBAIKAN UTAMA SELESAI ---
 
       const encodedPrompt = encodeURIComponent(`${workingParams.model}:${prompt}`)
       const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?${params.toString()}`
-
-      console.log("Generating with URL:", imageUrl); // Untuk debugging
 
       setCurrentImage(imageUrl)
 
