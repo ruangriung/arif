@@ -20,7 +20,7 @@ export function ImageGenerator() {
     model: "flux" as ImageModel,
     nologo: true,
     enhance: true,
-    size: "1024x1792", // Ukuran default baru
+    size: "1024x1792",
     quality: "hd",
     seed: generateRandomSeed(),
   })
@@ -32,7 +32,6 @@ export function ImageGenerator() {
     if ((!prompt && !regenerate) || isGenerating) return
 
     setIsGenerating(true)
-
     const workingParams = { ...currentParams }
 
     if (regenerate) {
@@ -118,6 +117,7 @@ export function ImageGenerator() {
           prompt={prompt}
           isLoading={isGenerating}
           onRegenerate={handleRegenerate}
+          size={currentParams.size} {/* Baris ini ditambahkan/diperbaiki */}
         />
 
         <Card className="mt-6">
