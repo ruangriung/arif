@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React, { useState, useEffect } from "react"
 import type { ImageParams, ImageModel } from "@/types/image-types"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
@@ -16,6 +16,37 @@ interface ParameterControlsProps {
 }
 
 export function ParameterControls({ params, onParamsChange }: ParameterControlsProps) {
+  const predefinedSizes = ["1024x1792", "1024x1024", "1792x1024"]
+
+  // State untuk melacak apakah mode "Custom" dipilih di dropdown
+  const [isCustomMode, setIsCustomMode] = useState(!predefinedSizes.includes(params.size))
+  
+  // State untuk nilai input kustom
+  const [customWidth, setCustomWidth] = useState(params.size.split("x")[0])
+  const [customHeight, setCustomHeight] = useState(params.size.split("x")[1])
+
+  // Sinkronkan state lokal jika props dari parent berubah (misalnya, memilih dari riwayat)
+  useEffect(() => {
+    const isCustom = !predefinedSizes.includes(params.size)
+    setIsCustomMode(isCustom)
+    if (isCustom) {
+      const [w, h] = params.size.split("x")
+      setCustomWidth(w)
+      setCustomHeight(h)
+    }
+  }, [params.size])
+
+  // Update parent state saat nilai kustom berubah
+  useEffect(() => {
+    if (isCustomMode) {
+      const width = parseInt(customWidth, 10)
+      const height = parseInt(customHeight, 10)
+      if (width > 0 && height > 0) {
+        onParamsChange({ size: `${width}x${height}` })
+      }
+    }
+  }, [customWidth, customHeight, isCustomMode])
+
   const handleSeedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number.parseInt(e.target.value)
     if (!isNaN(value)) {
@@ -29,38 +60,21 @@ export function ParameterControls({ params, onParamsChange }: ParameterControlsP
 
   const handleSizePresetChange = (value: string) => {
     if (value === "custom") {
-      // Jika beralih ke kustom, default ke 1024x1024 jika ukuran saat ini adalah preset.
-      const predefined = ["1024x1792", "1024x1024", "1792x1024"]
-      if (predefined.includes(params.size)) {
-        onParamsChange({ size: "1024x1024" })
+      setIsCustomMode(true)
+      // Jika ukuran saat ini adalah preset, default ke 1024x1024 saat beralih ke kustom
+      if (predefinedSizes.includes(params.size)) {
+        setCustomWidth("1024")
+        setCustomHeight("1024")
       }
-      // Jika sudah kustom, biarkan saja.
     } else {
-      // Ini adalah preset
+      setIsCustomMode(false)
       onParamsChange({ size: value })
     }
   }
 
-  const handleCustomSizeChange = (dimension: "width" | "height", value: string) => {
-    const currentSize = params.size.split("x")
-    const width = dimension === "width" ? value : currentSize[0]
-    const height = dimension === "height" ? value : currentSize[1]
-
-    if (Number(width) > 0 && Number(height) > 0) {
-      onParamsChange({ size: `${width}x${height}` })
-    }
-  }
-
-  // Logika untuk menentukan nilai dropdown dan apakah input kustom harus ditampilkan
-  const predefinedSizes = ["1024x1792", "1024x1024", "1792x1024"]
-  const isCustomSize = !predefinedSizes.includes(params.size)
-  const selectValue = isCustomSize ? "custom" : params.size
-  const [customWidth, customHeight] = isCustomSize ? params.size.split("x") : ["", ""]
-
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-medium">Image Parameters</h3>
-
       <div className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="model">Model</Label>
@@ -78,7 +92,7 @@ export function ParameterControls({ params, onParamsChange }: ParameterControlsP
 
         <div className="space-y-2">
           <Label htmlFor="size">Image Size</Label>
-          <Select value={selectValue} onValueChange={handleSizePresetChange}>
+          <Select value={isCustomMode ? "custom" : params.size} onValueChange={handleSizePresetChange}>
             <SelectTrigger id="size">
               <SelectValue placeholder="Select size" />
             </SelectTrigger>
@@ -91,7 +105,7 @@ export function ParameterControls({ params, onParamsChange }: ParameterControlsP
           </Select>
         </div>
 
-        {isCustomSize && (
+        {isCustomMode && (
           <div className="grid grid-cols-2 gap-4 pt-2">
             <div>
               <Label htmlFor="customWidth" className="text-xs text-muted-foreground">Width</Label>
@@ -100,7 +114,7 @@ export function ParameterControls({ params, onParamsChange }: ParameterControlsP
                 type="number"
                 placeholder="1024"
                 value={customWidth}
-                onChange={(e) => handleCustomSizeChange("width", e.target.value)}
+                onChange={(e) => setCustomWidth(e.target.value)}
                 className="mt-1"
               />
             </div>
@@ -111,7 +125,7 @@ export function ParameterControls({ params, onParamsChange }: ParameterControlsP
                 type="number"
                 placeholder="1792"
                 value={customHeight}
-                onChange={(e) => handleCustomSizeChange("height", e.target.value)}
+                onChange={(e) => setCustomHeight(e.target.value)}
                 className="mt-1"
               />
             </div>
