@@ -64,7 +64,7 @@ export function ImageDisplay({ imageUrl, prompt, isLoading, onRegenerate }: Imag
 
         {imageUrl && (
           <>
-            <div className={`transition-opacity duration-300 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}>
+            <div className={`transition-all duration-500 ease-in-out ${isImageLoaded ? "opacity-100 transform scale-105" : "opacity-0 transform scale-100"}`}>
               <Image
                 src={imageUrl || "/placeholder.svg"}
                 alt={prompt || "Generated image"}
