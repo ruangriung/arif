@@ -8,9 +8,9 @@ import { Footer } from "@/components/footer"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Next.js Community Starter",
-  description: "A modern Next.js starter with theme support",
-    generator: 'v0.dev'
+  title: "AI Image Generator | Ubah Teks Jadi Gambar",
+  description: "Hasilkan gambar unik dan menakjubkan dari imajinasi Anda. Cukup ketikkan deskripsi teks dan biarkan AI kami mengubahnya menjadi karya seni visual yang indah. Coba gratis sekarang!",
+  generator: 'v0.dev'
 }
 
 export default function RootLayout({
