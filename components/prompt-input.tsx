@@ -2,9 +2,9 @@
 
 import type React from "react"
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { RefreshCw, Send, Sparkles } from "lucide-react"
+import { Button } from "@/components/ui/button" //
+import { Textarea } from "@/components/ui/textarea" //
+import { RefreshCw, Send, Sparkles, X } from "lucide-react"
 
 interface PromptInputProps {
   prompt: string
@@ -23,13 +23,18 @@ export function PromptInput({ prompt, onPromptChange, onSubmit, isGenerating, on
       onSubmit(prompt)
     }
   }
+  
+  const handleClearPrompt = () => {
+    onPromptChange("")
+  }
 
   const handleEnhancePrompt = async () => {
+    // ... (fungsi ini tidak berubah)
     if (!prompt.trim() || isEnhancing || isGenerating) return
 
     setIsEnhancing(true)
     const originalPrompt = prompt
-    onPromptChange("") // Kosongkan prompt untuk menampilkan hasil streaming
+    onPromptChange("") 
 
     try {
       const response = await fetch("https://text.pollinations.ai/openai", {
@@ -87,7 +92,7 @@ export function PromptInput({ prompt, onPromptChange, onSubmit, isGenerating, on
       }
     } catch (error) {
       console.error("Error enhancing prompt:", error)
-      onPromptChange(originalPrompt) // Kembalikan prompt asli jika terjadi error
+      onPromptChange(originalPrompt)
     } finally {
       setIsEnhancing(false)
     }
@@ -95,10 +100,26 @@ export function PromptInput({ prompt, onPromptChange, onSubmit, isGenerating, on
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="flex flex-col space-y-2">
-        <label htmlFor="prompt" className="text-sm font-medium">
-          Enter your prompt
-        </label>
+      <div className="space-y-2">
+        {/* --- PERUBAHAN DI SINI --- */}
+        <div className="flex justify-between items-center">
+          <label htmlFor="prompt" className="text-sm font-medium">
+            Enter your prompt
+          </label>
+          {prompt.trim().length > 0 && (
+              <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClearPrompt}
+                  className="h-auto px-2 py-1 text-xs"
+              >
+                  <X className="h-3 w-3 mr-1" />
+                  Clear
+              </Button>
+          )}
+        </div>
+        {/* --- BATAS PERUBAHAN --- */}
         <Textarea
           id="prompt"
           placeholder="Describe the image you want to generate..."
