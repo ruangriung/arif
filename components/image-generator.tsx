@@ -82,7 +82,7 @@ export function ImageGenerator() {
   }
 
   const handlePromptSubmit = (inputPrompt: string) => {
-    setPrompt(inputPrompt)
+    // We don't need to call setPrompt here because it's already updated
     generateImage()
   }
 
