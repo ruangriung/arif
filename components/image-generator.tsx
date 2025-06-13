@@ -39,15 +39,29 @@ export function ImageGenerator() {
     }
 
     try {
+      // --- PERBAIKAN UTAMA DIMULAI DI SINI ---
       const params = new URLSearchParams()
+      
+      // 1. Mem-parsing string 'size' menjadi width dan height
+      const [width, height] = workingParams.size.split('x')
+
+      // 2. Menambahkan parameter width dan height secara terpisah ke URL
+      if (width) params.append("width", width)
+      if (height) params.append("height", height)
+
+      // Menambahkan parameter lainnya seperti biasa
       if (workingParams.nologo) params.append("nologo", "true")
       if (workingParams.enhance) params.append("enhance", "true")
-      params.append("size", workingParams.size)
       params.append("quality", workingParams.quality)
       params.append("seed", workingParams.seed.toString())
+      
+      // Parameter 'size' yang lama sudah tidak digunakan lagi dalam pembuatan URL
+      // --- PERBAIKAN UTAMA SELESAI ---
 
       const encodedPrompt = encodeURIComponent(`${workingParams.model}:${prompt}`)
       const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?${params.toString()}`
+
+      console.log("Generating with URL:", imageUrl); // Untuk debugging
 
       setCurrentImage(imageUrl)
 
@@ -117,7 +131,7 @@ export function ImageGenerator() {
           prompt={prompt}
           isLoading={isGenerating}
           onRegenerate={handleRegenerate}
-          size={currentParams.size} {/* Baris ini ditambahkan/diperbaiki */}
+          size={currentParams.size}
         />
 
         <Card className="mt-6">
