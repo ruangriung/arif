@@ -1,23 +1,19 @@
 "use client"
 
 import { useState } from "react"
-import { useLocalStorage } from "@/hooks/use-local-storage" //
-import { Card, CardContent } from "@/components/ui/card" //
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs" //
-import { PromptInput } from "@/components/prompt-input" //
-import { ImageDisplay } from "@/components/image-display" //
-import { ParameterControls } from "@/components/parameter-controls" //
-import { HistoryPanel } from "@/components/history-panel" //
-import { PromptSuggestions } from "@/components/prompt-suggestions" //
-import type { ImageHistory, ImageParams, ImageModel } from "@/types/image-types" //
-import { generateRandomSeed } from "@/lib/utils" //
+import { useLocalStorage } from "@/hooks/use-local-storage.tsx"
+import { Card, CardContent } from "@/components/ui/card.tsx"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs.tsx"
+import { PromptInput } from "@/components/prompt-input.tsx"
+import { ImageDisplay } from "@/components/image-display.tsx"
+import { ParameterControls } from "@/components/parameter-controls.tsx"
+import { HistoryPanel } from "@/components/history-panel.tsx"
+import { PromptSuggestions } from "@/components/prompt-suggestions.tsx"
+import type { ImageHistory, ImageParams, ImageModel } from "@/types/image-types.ts"
+import { generateRandomSeed } from "@/lib/utils.ts"
 
 export function ImageGenerator() {
-  // --- PERUBAHAN DI SINI ---
-  // Menggunakan useLocalStorage untuk menyimpan prompt
   const [prompt, setPrompt] = useLocalStorage<string>("current-prompt", "")
-  // --- BATAS PERUBAHAN ---
-
   const [isGenerating, setIsGenerating] = useState(false)
   const [currentImage, setCurrentImage] = useState<string | null>(null)
   const [currentParams, setCurrentParams] = useState<ImageParams>({
@@ -32,6 +28,7 @@ export function ImageGenerator() {
   const [history, setHistory] = useLocalStorage<ImageHistory[]>("image-history", [])
   const [savedPrompts, setSavedPrompts] = useLocalStorage<string[]>("saved-prompts", [])
 
+  // --- PERUBAHAN PADA FUNGSI INI ---
   const generateImage = async (regenerate = false) => {
     if ((!prompt && !regenerate) || isGenerating) return
 
@@ -44,6 +41,11 @@ export function ImageGenerator() {
 
     try {
       const params = new URLSearchParams()
+      
+      // 1. Menambahkan model sebagai query parameter
+      params.append("model", workingParams.model)
+
+      // 2. Menambahkan parameter lainnya
       const [width, height] = workingParams.size.split('x')
       if (width) params.append("width", width)
       if (height) params.append("height", height)
@@ -51,9 +53,12 @@ export function ImageGenerator() {
       if (workingParams.enhance) params.append("enhance", "true")
       params.append("quality", workingParams.quality)
       params.append("seed", workingParams.seed.toString())
-
-      const encodedPrompt = encodeURIComponent(`${workingParams.model}:${prompt}`)
+      
+      // 3. Hanya melakukan encode pada prompt saja
+      const encodedPrompt = encodeURIComponent(prompt)
       const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?${params.toString()}`
+
+      console.log("Generating with URL:", imageUrl);
 
       setCurrentImage(imageUrl)
 
@@ -80,6 +85,7 @@ export function ImageGenerator() {
       setIsGenerating(false)
     }
   }
+  // --- BATAS PERUBAHAN ---
 
   const handlePromptSubmit = (inputPrompt: string) => {
     generateImage()
